@@ -34,12 +34,13 @@ exports.login = async (req, res) => {
         // Buscar al usuario por nombre de usuario
         const user = await User.findOne({ username });
         if (!user) {
-            return res.status(404).json({ message: 'Usuario no encontrado' });
+            return res.status(404).json({ message: 'Credenciales Incorrectas' });
         }
 
-        // Comparar la contraseña directamente (sin encriptar)
-        if (user.password !== password) {
-            return res.status(400).json({ message: 'Contraseña incorrecta' });
+        // Comparar la contraseña ingresada con la contraseña encriptada almacenada
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(400).json({ message: 'Credenciales Incorrectas' });
         }
 
         // Generar un token JWT
