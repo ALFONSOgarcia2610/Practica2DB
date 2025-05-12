@@ -51,3 +51,39 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: 'Error en el servidor', error });
     }
 };
+// Cambio de contraseña
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    // Obtener el ID del usuario desde el token (requiere middleware de autenticación)
+    const userId = req.user?.id; // Suponiendo que usas middleware que decodifica el token y lo guarda en req.user
+
+    if (!userId) {
+      return res.status(401).json({ message: "No autorizado" });
+    }
+
+    // Buscar al usuario en la base de datos
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // Verificar contraseña actual
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "La contraseña actual es incorrecta" });
+    }
+
+    // Hashear la nueva contraseña
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    // Guardar nueva contraseña
+    user.password = hashedNewPassword;
+    await user.save();
+
+    res.status(200).json({ message: "Contraseña actualizada exitosamente" });
+  } catch (error) {
+    res.status(500).json({ message: "Error al cambiar la contraseña", error });
+  }
+};

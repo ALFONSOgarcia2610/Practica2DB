@@ -26,3 +26,9 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
+
+app._router.stack.forEach(r => {
+  if (r.route && r.route.path) {
+    console.log(r.route.path);
+  }
+});
